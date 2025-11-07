@@ -12,8 +12,8 @@
         "BazarExam": {
             "commandName": "Project",
             "dotnetRunMessages": true,
-            "launchBrowser": true, // ✅ Abre navegador automáticamente
-            "launchUrl": "swagger", // ✅ Abre Swagger por defecto
+            "launchBrowser": true,
+            "launchUrl": "swagger", // ✅ abre swagger automáticamente
             "applicationUrl": "https://localhost:7015;http://localhost:5218",
             "environmentVariables": {
                 "ASPNETCORE_ENVIRONMENT": "Development"

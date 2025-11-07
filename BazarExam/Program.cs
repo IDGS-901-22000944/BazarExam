@@ -4,13 +4,13 @@ using BazarExam.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // =======================================================
-// 🔧 CONFIGURAR BASE DE DATOS (PostgreSQL desde Render o local)
+// 🗄️ CONFIGURAR BASE DE DATOS (PostgreSQL local o Render)
 // =======================================================
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
 
 // =======================================================
-// 🌐 CONFIGURAR CORS (Netlify, Render y Localhost)
+// 🌐 CONFIGURAR CORS (para Render, Netlify y localhost)
 // =======================================================
 builder.Services.AddCors(options =>
 {
@@ -18,15 +18,15 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(
                 "http://localhost:5173",                 // React local (Vite)
-                "https://tu-netlify.netlify.app",        // 🔹 Cambia por tu dominio real de Netlify
-                "https://bazar-backend.onrender.com"     // 🔹 Cambia por tu dominio real de Render
+                "https://tu-netlify.netlify.app",        // 🔹 cambia por tu dominio de Netlify
+                "https://bazar-backend.onrender.com"     // 🔹 cambia por tu dominio de Render
             )
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
 
 // =======================================================
-// 🚀 CONFIGURAR SERVICIOS
+// 🚀 CONFIGURAR SERVICIOS GENERALES
 // =======================================================
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -35,41 +35,44 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // =======================================================
-// ⚙️ CONFIGURAR MIDDLEWARES
+// ⚙️ MIDDLEWARES
 // =======================================================
 
-// Render usa puerto 8080, así que configuramos las URLs explícitamente
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Urls.Add($"http://*:{port}");
-
-// Redirección HTTPS solo si está en entorno local
-if (!app.Environment.IsProduction())
+// ✅ Solo usar HTTPS Redirection en desarrollo (no en Render)
+if (app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
 
-// Aplicar CORS antes de los controladores
+// ✅ CORS
 app.UseCors("AllowAll");
 
-// Swagger siempre habilitado (útil en Render)
+// ✅ Swagger habilitado siempre (Render y local)
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// Mapear controladores
+// ✅ URLs: Render usa 8080, local usa lo de launchSettings.json
+if (app.Environment.IsProduction())
+{
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+    app.Urls.Add($"http://*:{port}");
+}
+
+// ✅ Mapear controladores
 app.MapControllers();
 
 // =======================================================
-// 🧩 SEMILLA DE DATOS: CARGAR products.json AUTOMÁTICAMENTE
+// 🧩 CARGAR PRODUCTOS AUTOMÁTICAMENTE DESDE products.json
 // =======================================================
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
 
-    // Aplicar migraciones pendientes
+    // Ejecutar migraciones pendientes
     context.Database.Migrate();
 
-    // Cargar productos desde el archivo JSON
+    // Cargar datos iniciales
     await SeedData.LoadProducts(context);
 }
 
