@@ -10,16 +10,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
 
 // =======================================================
-// 🌐 CONFIGURAR CORS (para Render, Netlify y localhost)
+// 🌐 CONFIGURAR CORS (Render, Netlify y Localhost)
 // =======================================================
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowFrontend", policy =>
         policy
             .WithOrigins(
                 "http://localhost:5173",                 // React local (Vite)
-                "https://tu-netlify.netlify.app",        // 🔹 cambia por tu dominio de Netlify
-                "https://bazar-backend.onrender.com"     // 🔹 cambia por tu dominio de Render
+                "https://pwabazarandy.netlify.app",      // ✅ tu dominio de Netlify real
+                "https://bazarexam.onrender.com"         // ✅ tu dominio real del backend Render
             )
             .AllowAnyHeader()
             .AllowAnyMethod());
@@ -44,8 +44,8 @@ if (app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-// ✅ CORS
-app.UseCors("AllowAll");
+// ✅ Activar CORS ANTES que Swagger o Controladores
+app.UseCors("AllowFrontend");
 
 // ✅ Swagger habilitado siempre (Render y local)
 app.UseSwagger();
